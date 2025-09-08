@@ -1,0 +1,48 @@
+<project name="pdfReadJavaJSF" default="deploy" basedir=".">
+    <property name="src.dir" value="src"/>
+    <property name="build.dir" value="build"/>
+    <property name="web.dir" value="WebContent"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="deploy.dir" value="${web.dir}/WEB-INF/classes"/>
+    <property name="tomcat.dir" value="C:/Users/prueb/Documents/compilesPdf"/>
+    <property name="tomcat.lib.dir" value="C:/Program Files/Apache/apache-tomcat-9.0.97/lib"/>
+
+    <path id="project.classpath">
+         <fileset dir="${lib.dir}">
+            <include name="**/*.jar"/>
+        </fileset>
+        <fileset dir="${tomcat.lib.dir}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+        <delete dir="${deploy.dir}"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="${deploy.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${deploy.dir}" encoding="UTF-8" classpathref="project.classpath"/>
+    </target>
+
+    <target name="copy-resources">
+        <copy todir="${web.dir}/WEB-INF/classes">
+            <fileset dir="${src.dir}">
+                <include name="**/*.properties"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="war">
+        <mkdir dir="${build.dir}"/>
+        <war destfile="${build.dir}/pdfReadJavaJSF.war" webxml="${web.dir}/WEB-INF/web.xml">
+            <fileset dir="${web.dir}"/>
+            <lib dir="${lib.dir}"/>
+        </war>
+    </target>
+
+    <target name="deploy" depends="clean, compile, copy-resources, war">
+        <copy file="${build.dir}/pdfReadJavaJSF.war" todir="${tomcat.dir}/pdfReadJavaJSF"/>
+    </target>
+</project>
