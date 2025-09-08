@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+<head>
+    <title>Lector de PDF - Java JSF</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <h:outputStylesheet target="head" library="css" name="estilos.css" />
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Lector de PDF con Java y JSF</h1>
+            <p>Visualiza y extrae texto de archivos PDF</p>
+        </header>
+
+        <div class="upload-section">
+            <h:form enctype="multipart/form-data">
+                <h3>Selecciona un archivo PDF:</h3>
+                <div class="file-upload">
+                    <h:inputFile id="pdfFile" value="#{pdfBacking.uploadedFile}" 
+                               accept="application/pdf" styleClass="file-input" />
+                    <label for="pdfFile" class="file-label">Seleccionar PDF</label>
+                    <h:commandButton value="Cargar PDF" action="#{pdfBacking.uploadPdf}" 
+                                   styleClass="btn upload-btn" />
+                </div>
+
+                <h:outputText value="#{pdfBacking.fileName}" styleClass="file-name" 
+                            rendered="#{not empty pdfBacking.fileName}" />
+                
+                <h:outputText value="#{pdfBacking.errorMessage}" styleClass="error-message" 
+                            rendered="#{not empty pdfBacking.errorMessage}" />
+            </h:form>
+        </div>
+
+        <div class="viewer-section" rendered="#{pdfBacking.totalPages > 0}">
+            <div class="toolbar">
+                <div class="navigation">
+                    <h:commandButton value="Anterior" action="#{pdfBacking.previousPage}" 
+                                   styleClass="btn" disabled="#{pdfBacking.currentPage == 1}" />
+                    <span class="page-info">
+                        Página #{pdfBacking.currentPage} de #{pdfBacking.totalPages}
+                    </span>
+                    <h:commandButton value="Siguiente" action="#{pdfBacking.nextPage}" 
+                                   styleClass="btn" disabled="#{pdfBacking.currentPage == pdfBacking.totalPages}" />
+                </div>
+                
+                <div class="page-jump">
+                    <span>Ir a página: </span>
+                    <h:selectOneMenu value="#{pdfBacking.currentPage}" styleClass="page-select">
+                        <f:selectItems value="#{pdfBacking.totalPages}" var="i" 
+                                     itemValue="#{i}" itemLabel="#{i}" />
+                    </h:selectOneMenu>
+                    <h:commandButton value="Ir" actionListener="#{pdfBacking.goToPage(pdfBacking.currentPage)}" 
+                                   styleClass="btn" />
+                </div>
+            </div>
+            
+            <div class="pdf-content">
+                <h3>Contenido de la página #{pdfBacking.currentPage}:</h3>
+                <div class="text-container">
+                    <pre>#{pdfBacking.currentPageText}</pre>
+                </div>
+            </div>
+            
+            <div class="download-options">
+                <h:commandButton value="Descargar texto completo" styleClass="btn download-btn" />
+                <h:commandButton value="Extraer imágenes" styleClass="btn" rendered="false" />
+            </div>
+        </div>
+
+        <footer>
+            <p>Desarrollado con Java, JSF 2.1 y Apache PDFBox</p>
+        </footer>
+    </div>
+</body>
+</html>
