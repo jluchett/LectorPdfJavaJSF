@@ -1,75 +1,91 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:f="http://java.sun.com/jsf/core"
-      xmlns:ui="http://java.sun.com/jsf/facelets">
-<head>
-    <title>Lector de PDF - Java JSF</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <h:outputStylesheet target="head" library="css" name="estilos.css" />
-</head>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:h="http://java.sun.com/jsf/html"
+  xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:f="http://java.sun.com/jsf/core"
+  xmlns:p="http://xmlns.jcp.org/jsf/passthrough">
+<h:head>
+  <title>Lector de PDF - Java JSF</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <h:outputScript target="head" library="js" name="script.js" />
+  <h:outputStylesheet target="head" library="css" name="estilos.css" />
+</h:head>
 <body>
     <div class="container">
         <header>
             <h1>Lector de PDF con Java y JSF</h1>
-            <p>Visualiza y extrae texto de archivos PDF</p>
+            <p>Visualiza y navega por documentos PDF desde Base64</p>
         </header>
 
-        <div class="upload-section">
-            <h:form enctype="multipart/form-data">
-                <h3>Selecciona un archivo PDF:</h3>
-                <div class="file-upload">
-                    <h:inputFile id="pdfFile" value="#{pdfBacking.uploadedFile}" 
-                               accept="application/pdf" styleClass="file-input" />
-                    <label for="pdfFile" class="file-label">Seleccionar PDF</label>
-                    <h:commandButton value="Cargar PDF" action="#{pdfBacking.uploadPdf}" 
-                                   styleClass="btn upload-btn" />
+       <div class="upload-section">
+            <h:form>
+                <h3>Ingresa el PDF en formato Base64:</h3>
+                <div class="base64-input">
+                    <h:inputTextarea value="#{pdfbacking.base64Pdf}" 
+                                   rows="6" cols="80"
+                                   placeholder="data:application/pdf;base64,..."
+                                   styleClass="base64-textarea"/>
+                    <h:commandButton value="Cargar PDF" action="#{pdfbacking.loadPdf}" 
+                                   styleClass="btn load-btn" />
                 </div>
 
-                <h:outputText value="#{pdfBacking.fileName}" styleClass="file-name" 
-                            rendered="#{not empty pdfBacking.fileName}" />
-                
-                <h:outputText value="#{pdfBacking.errorMessage}" styleClass="error-message" 
-                            rendered="#{not empty pdfBacking.errorMessage}" />
+                <h:outputText value="#{pdfbacking.errorMessage}" styleClass="error-message" 
+                            rendered="#{not empty pdfbacking.errorMessage}" />
             </h:form>
         </div>
 
-        <div class="viewer-section" rendered="#{pdfBacking.totalPages > 0}">
-            <div class="toolbar">
-                <div class="navigation">
-                    <h:commandButton value="Anterior" action="#{pdfBacking.previousPage}" 
-                                   styleClass="btn" disabled="#{pdfBacking.currentPage == 1}" />
-                    <span class="page-info">
-                        Página #{pdfBacking.currentPage} de #{pdfBacking.totalPages}
-                    </span>
-                    <h:commandButton value="Siguiente" action="#{pdfBacking.nextPage}" 
-                                   styleClass="btn" disabled="#{pdfBacking.currentPage == pdfBacking.totalPages}" />
+        <h:panelGroup rendered="#{pdfbacking.hasPdf}">
+            <div class="viewer-section">
+                <div class="toolbar">
+                    <div class="navigation">
+                        <h:commandButton value="⏪" action="#{pdfbacking.previousPage}" 
+                                       styleClass="btn nav-btn" disabled="#{pdfbacking.currentPage == 1}" />
+                        <span class="page-info">
+                            Página #{pdfbacking.currentPage} de #{pdfbacking.totalPages}
+                        </span>
+                        <h:commandButton value="⏩" action="#{pdfbacking.nextPage}" 
+                                       styleClass="btn nav-btn" disabled="#{pdfbacking.currentPage == pdfbacking.totalPages}" />
+                    </div>
+                    
+                    <div class="zoom-controls">
+                        <h:commandButton value="➖" action="#{pdfbacking.zoomOut}" 
+                                       styleClass="btn zoom-btn" />
+                        <span class="zoom-info">#{pdfbacking.currentZoom}%</span>
+                        <h:commandButton value="➕" action="#{pdfbacking.zoomIn}" 
+                                       styleClass="btn zoom-btn" />
+                        <h:commandButton value="⭕" action="#{pdfbacking.resetZoom}" 
+                                       styleClass="btn zoom-btn" />
+                    </div>
+                    
+                    <div class="search-controls">
+                        <h:inputText value="#{pdfbacking.searchText}" 
+                                   placeholder="Buscar texto..."
+                                   styleClass="search-input" />
+                        <h:commandButton value="🔍 Buscar" action="#{pdfbacking.searchText}" 
+                                       styleClass="btn search-btn" />
+                        <h:outputText value="✓ Encontrado en pág. #{pdfbacking.foundPage}" 
+                                    styleClass="found-message"
+                                    rendered="#{pdfbacking.textFound}" />
+                    </div>
+                    
+                    <div class="action-controls">
+                        <h:commandButton value="⬇️ Descargar" action="#{pdfbacking.downloadPdf}" 
+                                       styleClass="btn action-btn" />
+                        <h:commandButton value="🖨️ Imprimir" onclick="printContent()" 
+                                       styleClass="btn action-btn" />
+                    </div>
                 </div>
                 
-                <div class="page-jump">
-                    <span>Ir a página: </span>
-                    <h:selectOneMenu value="#{pdfBacking.currentPage}" styleClass="page-select">
-                        <f:selectItems value="#{pdfBacking.totalPages}" var="i" 
-                                     itemValue="#{i}" itemLabel="#{i}" />
-                    </h:selectOneMenu>
-                    <h:commandButton value="Ir" actionListener="#{pdfBacking.goToPage(pdfBacking.currentPage)}" 
-                                   styleClass="btn" />
+                <div class="pdf-content">
+                    <h3>Contenido de la página #{pdfbacking.currentPage}:</h3>
+                    <div class="text-container" style="font-size: #{pdfbacking.currentZoom}%;">
+                        <h:outputText value="#{pdfbacking.currentPageText}" escape="false" />
+                    </div>
                 </div>
             </div>
-            
-            <div class="pdf-content">
-                <h3>Contenido de la página #{pdfBacking.currentPage}:</h3>
-                <div class="text-container">
-                    <pre>#{pdfBacking.currentPageText}</pre>
-                </div>
-            </div>
-            
-            <div class="download-options">
-                <h:commandButton value="Descargar texto completo" styleClass="btn download-btn" />
-                <h:commandButton value="Extraer imágenes" styleClass="btn" rendered="false" />
-            </div>
-        </div>
+        </h:panelGroup>
+
+        
 
         <footer>
             <p>Desarrollado con Java, JSF 2.1 y Apache PDFBox</p>

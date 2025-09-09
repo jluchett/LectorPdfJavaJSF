@@ -7,21 +7,15 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
-import javax.faces.bean.ApplicationScoped;
-
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 
-@ApplicationScoped
 public class PdfService {
 
-  public List<String> extractTextFromPdf(String base64Pdf) throws IOException {
+    public List<String> extractTextFromPdf(String base64Pdf) throws IOException {
         List<String> pagesText = new ArrayList<>();
         
-        // Remover el prefijo si está presente
         String base64Data = base64Pdf.replaceFirst("^data:application/pdf;base64,", "");
-        
-        // Decodificar Base64
         byte[] pdfBytes = Base64.getDecoder().decode(base64Data);
         
         try (InputStream is = new ByteArrayInputStream(pdfBytes);
@@ -49,6 +43,11 @@ public class PdfService {
             
             return document.getNumberOfPages();
         }
+    }
+    
+    public byte[] convertToPdfBytes(String base64Pdf) throws IOException {
+        String base64Data = base64Pdf.replaceFirst("^data:application/pdf;base64,", "");
+        return Base64.getDecoder().decode(base64Data);
     }
 
     public String extractFirstPageText(String base64Pdf) throws IOException {
