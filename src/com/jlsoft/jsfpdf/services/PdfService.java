@@ -1,8 +1,6 @@
 package com.jlsoft.jsfpdf.services;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -18,14 +16,14 @@ public class PdfService {
         String base64Data = base64Pdf.replaceFirst("^data:application/pdf;base64,", "");
         byte[] pdfBytes = Base64.getDecoder().decode(base64Data);
         
-        try (InputStream is = new ByteArrayInputStream(pdfBytes);
-             PDDocument document = PDDocument.load(is)) {
-            
+        // PDFBox 2.x: Usar load con byte[]
+        try (PDDocument document = PDDocument.load(pdfBytes)) {
             PDFTextStripper stripper = new PDFTextStripper();
+            int totalPages = document.getNumberOfPages();
             
-            for (int page = 0; page < document.getNumberOfPages(); page++) {
-                stripper.setStartPage(page + 1);
-                stripper.setEndPage(page + 1);
+            for (int page = 1; page <= totalPages; page++) {
+                stripper.setStartPage(page);
+                stripper.setEndPage(page);
                 String pageText = stripper.getText(document);
                 pagesText.add(pageText);
             }
@@ -38,31 +36,14 @@ public class PdfService {
         String base64Data = base64Pdf.replaceFirst("^data:application/pdf;base64,", "");
         byte[] pdfBytes = Base64.getDecoder().decode(base64Data);
         
-        try (InputStream is = new ByteArrayInputStream(pdfBytes);
-             PDDocument document = PDDocument.load(is)) {
-            
+        try (PDDocument document = PDDocument.load(pdfBytes)) {
             return document.getNumberOfPages();
         }
     }
-    
-    public byte[] convertToPdfBytes(String base64Pdf) throws IOException {
+
+    public byte[] convertToPdfBytes(String base64Pdf) {
         String base64Data = base64Pdf.replaceFirst("^data:application/pdf;base64,", "");
         return Base64.getDecoder().decode(base64Data);
-    }
-
-    public String extractFirstPageText(String base64Pdf) throws IOException {
-        String base64Data = base64Pdf.replaceFirst("^data:application/pdf;base64,", "");
-        byte[] pdfBytes = Base64.getDecoder().decode(base64Data);
-        
-        try (InputStream is = new ByteArrayInputStream(pdfBytes);
-             PDDocument document = PDDocument.load(is)) {
-            
-            PDFTextStripper stripper = new PDFTextStripper();
-            stripper.setStartPage(1);
-            stripper.setEndPage(1);
-            
-            return stripper.getText(document);
-        }
     }
   
 }
